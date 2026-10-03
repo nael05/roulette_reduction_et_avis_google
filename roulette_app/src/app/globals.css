@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #00f0ff;
+  --primary-dark: #00b8cc;
+  --primary-light: #5ff4ff;
+  --secondary: #0a0e27;
+  --secondary-light: #1a1f3a;
+  --accent: #ff006e;
+  --bg-dark: #050814;
+  --bg-card: rgba(10, 14, 39, 0.6);
+  --text-light: #ffffff;
+  --text-gray: #a0aec0;
+  --border-color: rgba(0, 240, 255, 0.2);
+
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-secondary: var(--secondary);
+  --color-secondary-light: var(--secondary-light);
+  --color-accent: var(--accent);
+  --color-bg-dark: var(--bg-dark);
+  --color-bg-card: var(--bg-card);
+  --color-text-light: var(--text-light);
+  --color-text-gray: var(--text-gray);
+  --color-border-custom: var(--border-color);
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  font-family: var(--font-body);
+}
+
+/* Background effects */
+.hero-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-dark);
+  z-index: -2;
+}
+
+.grid-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+      linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.gradient-sphere {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: -1;
+  pointer-events: none;
+  animation: float 20s infinite ease-in-out;
+}
+
+.sphere-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.25), transparent 70%);
+  top: -150px;
+  right: -100px;
+}
+
+.sphere-2 {
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(255, 0, 110, 0.2), transparent 70%);
+  bottom: -100px;
+  left: -150px;
+  animation-delay: -5s;
+}
+
+@keyframes float {
+  0%, 100% {
+      transform: translate(0, 0) scale(1);
+  }
+  33% {
+      transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+      transform: translate(-30px, 40px) scale(0.95);
+  }
+}
