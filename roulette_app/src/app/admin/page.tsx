@@ -570,7 +570,6 @@ export default function AdminPage() {
                       }
                     }} 
                     onError={(error) => console.log(error?.message)}
-                    options={{ delayBetweenScanSuccess: 3000 }}
                   />
                 </div>
                 
