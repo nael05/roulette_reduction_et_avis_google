@@ -15,7 +15,6 @@ const exo2 = Exo_2({
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
