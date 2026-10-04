@@ -3,7 +3,6 @@ import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-// Récupérer la liste des promotions actives
 export async function GET() {
   try {
     const { data: promotions, error } = await supabaseAdmin
@@ -15,7 +14,6 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Decode probabilities and colors from text_content
     const decodedPromos = promotions.map((p: any) => {
       const parts = p.text_content.split('||');
       if (parts.length >= 3) {
@@ -38,17 +36,14 @@ export async function GET() {
   }
 }
 
-// Mettre à jour les promotions
 export async function PUT(request: Request) {
   try {
     const { promotions } = await request.json();
     
-    // Encode probabilities and colors into text_content
     const encodedPromos = promotions.map((p: any) => ({
       text_content: `${p.probability !== undefined ? p.probability : (100 / promotions.length)}||${p.color || '#00F0FF'}||${p.text_content}`
     }));
 
-    // Delete ALL existing promos
     const { error: deleteError } = await supabaseAdmin
       .from('promotions')
       .delete()
@@ -59,7 +54,6 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: deleteError.message }, { status: 500 });
     }
 
-    // Insert new promos (sans ID, Supabase auto-génère)
     const { error } = await supabaseAdmin
       .from('promotions')
       .insert(encodedPromos);

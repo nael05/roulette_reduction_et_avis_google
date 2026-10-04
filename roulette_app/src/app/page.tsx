@@ -8,15 +8,10 @@ export default function Home() {
   const [showReviewPopup, setShowReviewPopup] = useState(false);
 
   useEffect(() => {
-    // For testing purposes, we show the popup every time.
-    // In production, you would uncomment the localStorage checks.
-    // const hasReviewed = localStorage.getItem("hasClickedReview");
-    // if (!hasReviewed) {
       const timer = setTimeout(() => {
         setShowReviewPopup(true);
       }, 1000);
       return () => clearTimeout(timer);
-    // }
   }, []);
 
   const handleReviewClick = () => {

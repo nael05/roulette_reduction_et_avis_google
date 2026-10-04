@@ -24,7 +24,6 @@ export async function DELETE(request: Request) {
     const clientId = searchParams.get('clientId');
 
     if (clientId) {
-      // Supprimer un seul client
       const { error } = await supabaseAdmin
         .from('clients')
         .delete()
@@ -33,9 +32,6 @@ export async function DELETE(request: Request) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ success: true, message: "Client supprimé" });
     } else {
-      // Tout supprimer
-      // Pour contourner les restrictions de Supabase sur les delete sans filtre (qui bloquent parfois par sécurité), 
-      // on utilise un filtre toujours vrai qui ne pose pas de problème de type UUID.
       const { error } = await supabaseAdmin
         .from('clients')
         .delete()

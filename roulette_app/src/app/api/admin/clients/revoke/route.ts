@@ -9,7 +9,6 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
     }
 
-    // On révoque l'offre en la marquant utilisée et en changeant le texte pour que l'admin sache
     const { error } = await supabaseAdmin
       .from('clients')
       .update({ used: true, won_prize: 'OFFRE ANNULÉE (Peut rejouer)' })

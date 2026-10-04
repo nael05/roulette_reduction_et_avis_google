@@ -36,16 +36,13 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingPromos, setIsSavingPromos] = useState(false);
 
-  // Scanner States
   const [scanStatus, setScanStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [scanMessage, setScanMessage] = useState("");
   const [scannedClient, setScannedClient] = useState<Client | null>(null);
 
-  // UI States (Toasts & Modals)
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null);
   
-  // Manual Promo States
   const [isManualPromoOpen, setIsManualPromoOpen] = useState(false);
   const [manualPromoStep, setManualPromoStep] = useState(1);
   const [isSendingManualPromo, setIsSendingManualPromo] = useState(false);
@@ -203,11 +200,9 @@ export default function AdminPage() {
         const sum = loadedPromos.reduce((a: number, p: any) => a + p.probability, 0);
         if (loadedPromos.length > 0 && Math.abs(sum - 100) > 0.01) {
           loadedPromos[loadedPromos.length - 1].probability += Number((100 - sum).toFixed(2));
-          // Round again just to be sure
           loadedPromos[loadedPromos.length - 1].probability = Number(loadedPromos[loadedPromos.length - 1].probability.toFixed(2));
         }
         
-        // Remove any negative probabilities resulting from rounding
         loadedPromos = loadedPromos.map((p: any) => ({ ...p, probability: Math.max(0, p.probability) }));
         
         setPromotions(loadedPromos);
@@ -261,7 +256,7 @@ export default function AdminPage() {
           body: JSON.stringify({ clientId })
         });
         if (res.ok) {
-          fetchData(); // Rafraîchir la liste
+          fetchData();
           showToast("Offre annulée avec succès !", "success");
         } else {
           showToast("Erreur lors de l'annulation.", "error");

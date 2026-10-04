@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="pictures/logo_clean_wash__and_co.webp" type="image/png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Galerie photos et vidéos Clean Wash & Co - Découvrez nos réalisations en nettoyage automobile et mobilier.">
+    <meta name="author" content="Clean Wash & Co">
+
+    <title>Photos & Vidéos | Clean Wash & Co</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .video-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .video-grid { grid-template-columns: 1fr; }
+        }
+
+        .video-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 240, 255, 0.12);
+            border-color: rgba(0, 240, 255, 0.3);
+        }
+
+        .video-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .video-card video {
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            object-fit: cover;
+            display: block;
+            background: #050814;
+        }
+
+        /* Overlay play/pause — desktop uniquement */
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.15);
+            transition: background 0.2s;
+        }
+
+        .video-overlay:hover { background: rgba(0, 0, 0, 0.3); }
+
+        .video-play-btn {
+            width: 64px;
+            height: 64px;
+            background: rgba(5, 8, 20, 0.65);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(0, 240, 255, 0.5);
+            backdrop-filter: blur(6px);
+            transition: transform 0.2s, background 0.2s, border-color 0.2s;
+            pointer-events: none;
+        }
+
+        .video-overlay:hover .video-play-btn {
+            transform: scale(1.1);
+            background: rgba(0, 240, 255, 0.18);
+            border-color: var(--primary);
+        }
+
+        .video-play-btn svg { color: #fff; }
+
+        /* Quand la vidéo joue on masque le bouton sauf au survol */
+        .video-overlay.playing { background: transparent; }
+        .video-overlay.playing .video-play-btn { opacity: 0; }
+        .video-overlay.playing:hover { background: rgba(0,0,0,0.2); }
+        .video-overlay.playing:hover .video-play-btn { opacity: 1; }
+
+        .gallery-section {
+            padding: 0 0 4rem 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .gallery-cta {
+            text-align: center;
+            padding: 3rem 0 4rem 0;
+        }
+
+        .gallery-cta p {
+            color: var(--text-gray);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            font-family: var(--font-body);
+        }
+
+        .section-count {
+            display: inline-block;
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 0.78rem;
+            font-family: var(--font-display);
+            color: var(--primary);
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        #gallery-mobilier { display: none; }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="navbar-brand">
+                <img src="pictures/logo_clean_wash__and_co_cercle.webp" alt="Logo Clean Wash & Co" class="logo-image">
+                <div class="logo-text">
+                    <span class="logo-clean">CLEAN</span>
+                    <span class="logo-wash">WASH</span>
+                    <span class="logo-co">& CO</span>
+                </div>
+            </a>
+
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">Accueil</a>
+                <a href="services.html" class="nav-link">Services et tarifs</a>
+                <a href="processus.html" class="nav-link">Notre Processus</a>
+                <a href="gallery.html" class="nav-link active">Photos & Vidéos</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+            </div>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <section class="section" style="padding-top: 150px; padding-bottom: 1rem; position: relative; z-index: 10;">
+        <div class="container">
+            <div class="section-header" style="margin-bottom: 3rem; text-align: center;">
+                <span class="section-tag" data-aos="fade-down">GALERIE</span>
+                <h1 class="section-title" data-aos="fade-up">Photos & Vidéos</h1>
+
+                <div class="category-selector-triangle" data-aos="fade-up" data-aos-delay="100">
+                    <div class="cat-row-top">
+                        <button class="cat-btn active" id="btn-auto" onclick="showGallery('auto')">Automobile</button>
+                        <button class="cat-btn" id="btn-mobilier" onclick="showGallery('mobilier')">Mobilier</button>
+                    </div>
+                </div>
+
+                <h3 id="subtitle-gallery-auto" class="section-subtitle" style="color: var(--text-gray); margin-top: 2rem;">Nos réalisations sur véhicules — intérieur, extérieur, rénovation</h3>
+                <h3 id="subtitle-gallery-mobilier" class="section-subtitle" style="color: var(--text-gray); margin-top: 2rem; display: none;">Nos réalisations sur canapés, matelas et tapis à domicile</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- AUTOMOBILE -->
+    <section class="gallery-section" id="gallery-auto">
+        <div class="container">
+            <div style="text-align:center; margin-bottom: 1rem;">
+                <span class="section-count">20 VIDÉOS</span>
+            </div>
+            <div class="video-grid">
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/automobile/auto_bmw_01.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/automobile/auto_nettoyage_0.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/automobile/auto_nettoyage_01.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/automobile/auto_nettoyage_03.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/automobile/auto_nettoyage_06.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/automobile/auto_nettoyage_08.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/automobile/auto_tesla_01.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/automobile/auto_voiture_01.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779310903752.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311002955.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311067067.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311300834.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311342001.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311369065.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311400703.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311434305.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311475176.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311520895.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311549352.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/automobile/ssstik.io_@cleanwashandco_1779311650693.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- MOBILIER -->
+    <section class="gallery-section" id="gallery-mobilier">
+        <div class="container">
+            <div style="text-align:center; margin-bottom: 1rem;">
+                <span class="section-count">9 VIDÉOS</span>
+            </div>
+            <div class="video-grid">
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/mobilié/ssstik.io_@cleanwashandco_1785417530014.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/mobilié/ssstik.io_@cleanwashandco_1785417561988.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/mobilié/ssstik.io_@cleanwashandco_1785417609535.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/mobilié/mobilier_canape_01.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/mobilié/mobilier_canape_02.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/mobilié/ssstik.io_@cleanwashandco_1779311688081.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up">
+                    <video controls preload="none">
+                        <source src="video/mobilié/chaise.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="50">
+                    <video controls preload="none">
+                        <source src="video/mobilié/ssstik.io_@cleanwashandco_1785417473173.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                    <video controls preload="none">
+                        <source src="video/mobilié/ssstik.io_@cleanwashandco_1785417500437.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SERVICES -->
+    <div class="gallery-cta">
+        <div class="container">
+            <p>Vous souhaitez le même résultat pour votre véhicule ou votre mobilier ?</p>
+            <a href="services.html" class="btn btn-primary">Voir nos prestations & tarifs</a>
+        </div>
+    </div>
+
+    <!-- CONTACT -->
+    <section class="contact" id="contact" style="padding: 4rem 0 3rem 0; border-top: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header" style="margin-bottom: 3rem;">
+                <span class="section-tag" data-aos="fade-down">CONTACT</span>
+                <h2 class="section-title" style="font-size: clamp(1.8rem, 4vw, 2.5rem);">Prêt à prendre rendez-vous ?</h2>
+            </div>
+
+            <div class="contact-block" style="margin-bottom: 3rem;">
+                <h3 style="font-family: var(--font-display); font-size: 1.1rem; color: var(--text-gray); margin-bottom: 1.5rem; text-align: center; text-transform: uppercase; letter-spacing: 2px;" data-aos="fade-up">Nous contacter</h3>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; max-width: 1050px; margin: 0 auto;">
+                    <a href="tel:06 50 78 26 84" class="info-item clickable-card" data-aos="fade-up" style="flex-direction: row; text-align: left; padding: 1rem; align-items: center;">
+                        <div class="info-icon" style="margin-bottom: 0; width: 45px; height: 45px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
+                        <div class="info-text" style="display: flex; flex-direction: column;">
+                            <div class="info-label" style="margin-bottom: 2px;">Téléphone</div>
+                            <div class="info-value" style="font-size: 1rem; margin-bottom: 0;">06 50 78 26 84</div>
+                        </div>
+                    </a>
+                    <a href="https://wa.me/33650782684" target="_blank" class="info-item clickable-card" data-aos="fade-up" data-aos-delay="50" style="flex-direction: row; text-align: left; padding: 1rem; align-items: center;">
+                        <div class="info-icon" style="margin-bottom: 0; width: 45px; height: 45px;"><svg width="24" height="24" viewBox="0 0 448 512" fill="#25D366"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-5.5-2.8-23.4-8.6-44.6-27.6-16.5-14.7-27.6-32.8-30.8-38.4-3.2-5.6-.3-8.6 2.5-11.4 2.5-2.5 5.5-6.5 8.3-9.7 2.8-3.3 3.8-5.7 5.7-9.4 1.9-3.7 1-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 13.3 5.7 23.5 9.2 31.5 11.8 13.3 4.2 25.5 3.6 35.2 2.2 10.8-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg></div>
+                        <div class="info-text" style="display: flex; flex-direction: column;">
+                            <div class="info-label" style="margin-bottom: 2px;">WhatsApp</div>
+                            <span class="info-action" style="margin-top: 0; font-size: 0.85rem;">Message direct →</span>
+                        </div>
+                    </a>
+                    <a href="https://www.instagram.com/cleanwashandcoo" target="_blank" class="info-item clickable-card" data-aos="fade-up" data-aos-delay="100" style="flex-direction: row; text-align: left; padding: 1rem; align-items: center;">
+                        <div class="info-icon" style="color: #E1306C; margin-bottom: 0; width: 45px; height: 45px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></div>
+                        <div class="info-text" style="display: flex; flex-direction: column;">
+                            <div class="info-label" style="margin-bottom: 2px;">Instagram</div>
+                            <span class="info-action" style="margin-top: 0; font-size: 0.85rem;">Nos travaux →</span>
+                        </div>
+                    </a>
+                    <a href="https://www.tiktok.com/@cleanwashandco" target="_blank" class="info-item clickable-card" data-aos="fade-up" data-aos-delay="150" style="flex-direction: row; text-align: left; padding: 1rem; align-items: center;">
+                        <div class="info-icon" style="margin-bottom: 0; width: 45px; height: 45px;"><svg width="22" height="22" viewBox="0 0 448 512" style="filter: drop-shadow(2px 0px 0px #fd1d1d) drop-shadow(-2px 0px 0px #00f0ff);"><path fill="white" d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0l88 0a121.18 121.18 0 0 0 1.86 22.17h0A122.18 122.18 0 0 0 381 102.39a121.43 121.43 0 0 0 67 20.14Z"/></svg></div>
+                        <div class="info-text" style="display: flex; flex-direction: column;">
+                            <div class="info-label" style="margin-bottom: 2px;">TikTok</div>
+                            <span class="info-action" style="margin-top: 0; font-size: 0.85rem;">Nos vidéos →</span>
+                        </div>
+                    </a>
+                    <a href="https://snapchat.com/t/ueWa0nrx" target="_blank" class="info-item clickable-card" data-aos="fade-up" data-aos-delay="200" style="flex-direction: row; text-align: left; padding: 1rem; align-items: center;">
+                        <div class="info-icon" style="color: #FFFC00; margin-bottom: 0; width: 45px; height: 45px;"><svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M15.943 11.526c-.111-.303-.323-.465-.564-.599a1 1 0 0 0-.123-.064l-.219-.111c-.752-.399-1.339-.902-1.746-1.498a3.4 3.4 0 0 1-.3-.531c-.034-.1-.032-.156-.008-.207a.3.3 0 0 1 .097-.1c.129-.086.262-.173.352-.231.162-.104.289-.187.371-.245.309-.216.525-.446.66-.702a1.4 1.4 0 0 0 .069-1.16c-.205-.538-.713-.872-1.329-.872a1.8 1.8 0 0 0-.487.065c.006-.368-.002-.757-.035-1.139-.116-1.344-.587-2.048-1.077-2.61a4.3 4.3 0 0 0-1.095-.881C9.764.216 8.92 0 7.999 0s-1.76.216-2.505.641c-.412.232-.782.53-1.097.883-.49.562-.96 1.267-1.077 2.61-.033.382-.04.772-.036 1.138a1.8 1.8 0 0 0-.487-.065c-.615 0-1.124.335-1.328.873a1.4 1.4 0 0 0 .067 1.161c.136.256.352.486.66.701.082.058.21.14.371.246l.339.221a.4.4 0 0 1 .109.11c.026.053.027.11-.012.217a3.4 3.4 0 0 1-.295.52c-.398.583-.968 1.077-1.696 1.472-.385.204-.786.34-.955.8-.128.348-.044.743.28 1.075q.18.189.409.31a4.4 4.4 0 0 0 1 .4.7.7 0 0 1 .202.09c.118.104.102.26.259.488q.12.178.296.3c.33.229.701.243 1.095.258.355.014.758.03 1.217.18.19.064.389.186.618.328.55.338 1.305.802 2.566.802 1.262 0 2.02-.466 2.576-.806.227-.14.424-.26.609-.321.46-.152.863-.168 1.218-.181.393-.015.764-.03 1.095-.258a1.14 1.14 0 0 0 .336-.368c.114-.192.11-.327.217-.42a.6.6 0 0 1 .19-.087 4.5 4.5 0 0 0 1.014-.404c.16-.087.306-.2.429-.336l.004-.005c.304-.325.38-.709.256-1.047m-1.121.602c-.684.378-1.139.337-1.493.565-.3.193-.122.61-.34.76-.269.186-1.061-.012-2.085.326-.845.279-1.384 1.082-2.903 1.082s-2.045-.801-2.904-1.084c-1.022-.338-1.816-.14-2.084-.325-.218-.15-.041-.568-.341-.761-.354-.228-.809-.187-1.492-.563-.436-.24-.189-.39-.044-.46 2.478-1.199 2.873-3.05 2.89-3.188.022-.166.045-.297-.138-.466-.177-.164-.962-.65-1.18-.802-.36-.252-.52-.503-.402-.812.082-.214.281-.295.49-.295a1 1 0 0 1 .197.022c.396.086.78.285 1.002.338q.04.01.082.011c.118 0 .16-.06.152-.195-.026-.433-.087-1.277-.019-2.066.094-1.084.444-1.622.859-2.097.2-.229 1.137-1.22 2.93-1.22 1.792 0 2.732.987 2.931 1.215.416.475.766 1.013.859 2.098.068.788.009 1.632-.019 2.065-.01.142.034.195.152.195a.4.4 0 0 0 .082-.01c.222-.054.607-.253 1.002-.338a1 1 0 0 1 .197-.023c.21 0 .409.082.49.295.117.309-.04.56-.401.812-.218.152-1.003.638-1.18.802-.184.169-.16.3-.139.466.018.14.413 1.991 2.89 3.189.147.073.394.222-.041.464"/></svg></div>
+                        <div class="info-text" style="display: flex; flex-direction: column;">
+                            <div class="info-label" style="margin-bottom: 2px;">Snapchat</div>
+                            <span class="info-action" style="margin-top: 0; font-size: 0.85rem;">Nos stories →</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <hr style="border: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border-color), transparent); margin: 0 auto 3rem auto; max-width: 800px; opacity: 0.5;">
+
+            <div class="location-block">
+                <h3 style="font-family: var(--font-display); font-size: 1.1rem; color: var(--text-gray); margin-bottom: 1.5rem; text-align: center; text-transform: uppercase; letter-spacing: 2px;" data-aos="fade-up" data-aos-delay="200">Zones d'intervention</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; max-width: 800px; margin: 0 auto;">
+                    <div class="info-item" data-aos="fade-up" data-aos-delay="250" style="flex-direction: row; text-align: left; padding: 1.2rem; align-items: center; justify-content: center; background: rgba(0, 240, 255, 0.02);">
+                        <div class="info-icon" style="color: var(--primary); margin-bottom: 0; width: 45px; height: 45px; background: rgba(0, 240, 255, 0.05);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"></path></svg></div>
+                        <div class="info-text">
+                            <div class="info-label" style="margin-bottom: 2px;">Service Automobile</div>
+                            <div style="font-size: 0.95rem; color: var(--text-light); font-weight: 600;">📍 Jouy-le-Moutier (95)</div>
+                        </div>
+                    </div>
+                    <div class="info-item" data-aos="fade-up" data-aos-delay="300" style="flex-direction: row; text-align: left; padding: 1.2rem; align-items: center; justify-content: center; background: rgba(0, 240, 255, 0.02);">
+                        <div class="info-icon" style="color: var(--primary); margin-bottom: 0; width: 45px; height: 45px; background: rgba(0, 240, 255, 0.05);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"></path></svg></div>
+                        <div class="info-text">
+                            <div class="info-label" style="margin-bottom: 2px;">Service à Domicile</div>
+                            <div style="font-size: 0.95rem; color: var(--text-light); font-weight: 600;">Canapé, matelas, tapis</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <span class="logo-clean">CLEAN</span>
+                        <span class="logo-wash">WASH</span>
+                        <span class="logo-co">& CO</span>
+                    </div>
+                    <p class="footer-tagline">L'excellence en nettoyage automobile, canapé, matelas et tapis</p>
+                </div>
+
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Services</h4>
+                        <ul>
+                            <li><a href="services.html#auto">Nettoyage Automobile Intérieur</a></li>
+                            <li><a href="services.html#auto">Nettoyage Automobile Extérieur</a></li>
+                            <li><a href="services.html#domicile">Nettoyage de canapé</a></li>
+                            <li><a href="services.html#domicile">Nettoyage de matelas</a></li>
+                            <li><a href="services.html#domicile">Nettoyage de tapis</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>Entreprise</h4>
+                        <ul>
+                            <li><a href="processus.html">Notre Processus</a></li>
+                            <li><a href="gallery.html">Photos & Vidéos</a></li>
+                            <li><a href="contact.html">Contact</a></li>
+                            <li><a href="mentions-legales.html">Mentions Légales</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>Horaires</h4>
+                        <ul>
+                            <li>Nettoyage automobile : Mercredi à Dimanche de 9h - 20h</li>
+                            <li>Nettoyage à domicile : Lundi et mardi</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 Clean Wash & Co. Tous droits réservés.</p>
+                <div class="footer-socials">
+                    <a href="https://www.instagram.com/cleanwashandcoo" target="_blank" title="Instagram">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                    <a href="https://www.tiktok.com/@cleanwashandco" target="_blank" title="TikTok">
+                        <svg width="20" height="20" viewBox="0 0 448 512" fill="currentColor">
+                            <path d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0l88 0a121.18 121.18 0 0 0 1.86 22.17h0A122.18 122.18 0 0 0 381 102.39a121.43 121.43 0 0 0 67 20.14Z"/>
+                        </svg>
+                    </a>
+                    <a href="https://snapchat.com/t/ueWa0nrx" target="_blank" title="Snapchat">
+                        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M15.943 11.526c-.111-.303-.323-.465-.564-.599a1 1 0 0 0-.123-.064l-.219-.111c-.752-.399-1.339-.902-1.746-1.498a3.4 3.4 0 0 1-.3-.531c-.034-.1-.032-.156-.008-.207a.3.3 0 0 1 .097-.1c.129-.086.262-.173.352-.231.162-.104.289-.187.371-.245.309-.216.525-.446.66-.702a1.4 1.4 0 0 0 .069-1.16c-.205-.538-.713-.872-1.329-.872a1.8 1.8 0 0 0-.487.065c.006-.368-.002-.757-.035-1.139-.116-1.344-.587-2.048-1.077-2.61a4.3 4.3 0 0 0-1.095-.881C9.764.216 8.92 0 7.999 0s-1.76.216-2.505.641c-.412.232-.782.53-1.097.883-.49.562-.96 1.267-1.077 2.61-.033.382-.04.772-.036 1.138a1.8 1.8 0 0 0-.487-.065c-.615 0-1.124.335-1.328.873a1.4 1.4 0 0 0 .067 1.161c.136.256.352.486.66.701.082.058.21.14.371.246l.339.221a.4.4 0 0 1 .109.11c.026.053.027.11-.012.217a3.4 3.4 0 0 1-.295.52c-.398.583-.968 1.077-1.696 1.472-.385.204-.786.34-.955.8-.128.348-.044.743.28 1.075q.18.189.409.31a4.4 4.4 0 0 0 1 .4.7.7 0 0 1 .202.09c.118.104.102.26.259.488q.12.178.296.3c.33.229.701.243 1.095.258.355.014.758.03 1.217.18.19.064.389.186.618.328.55.338 1.305.802 2.566.802 1.262 0 2.02-.466 2.576-.806.227-.14.424-.26.609-.321.46-.152.863-.168 1.218-.181.393-.015.764-.03 1.095-.258a1.14 1.14 0 0 0 .336-.368c.114-.192.11-.327.217-.42a.6.6 0 0 1 .19-.087 4.5 4.5 0 0 0 1.014-.404c.16-.087.306-.2.429-.336l.004-.005c.304-.325.38-.709.256-1.047m-1.121.602c-.684.378-1.139.337-1.493.565-.3.193-.122.61-.34.76-.269.186-1.061-.012-2.085.326-.845.279-1.384 1.082-2.903 1.082s-2.045-.801-2.904-1.084c-1.022-.338-1.816-.14-2.084-.325-.218-.15-.041-.568-.341-.761-.354-.228-.809-.187-1.492-.563-.436-.24-.189-.39-.044-.46 2.478-1.199 2.873-3.05 2.89-3.188.022-.166.045-.297-.138-.466-.177-.164-.962-.65-1.18-.802-.36-.252-.52-.503-.402-.812.082-.214.281-.295.49-.295a1 1 0 0 1 .197.022c.396.086.78.285 1.002.338q.04.01.082.011c.118 0 .16-.06.152-.195-.026-.433-.087-1.277-.019-2.066.094-1.084.444-1.622.859-2.097.2-.229 1.137-1.22 2.93-1.22 1.792 0 2.732.987 2.931 1.215.416.475.766 1.013.859 2.098.068.788.009 1.632-.019 2.065-.01.142.034.195.152.195a.4.4 0 0 0 .082-.01c.222-.054.607-.253 1.002-.338a1 1 0 0 1 .197-.023c.21 0 .409.082.49.295.117.309-.04.56-.401.812-.218.152-1.003.638-1.18.802-.184.169-.16.3-.139.466.018.14.413 1.991 2.89 3.189.147.073.394.222-.041.464"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <button id="scrollTop" aria-label="Retour en haut">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6" /></svg>
+    </button>
+
+    <script src="script.js"></script>
+    <script>
+        // ── Switcher onglets ──────────────────────────────────────────
+        function showGallery(section) {
+            const autoEl     = document.getElementById('gallery-auto');
+            const mobilierEl = document.getElementById('gallery-mobilier');
+            const btnAuto    = document.getElementById('btn-auto');
+            const btnMobilier= document.getElementById('btn-mobilier');
+            const subAuto    = document.getElementById('subtitle-gallery-auto');
+            const subMobilier= document.getElementById('subtitle-gallery-mobilier');
+
+            if (section === 'auto') {
+                autoEl.style.display     = 'block';
+                mobilierEl.style.display = 'none';
+                btnAuto.classList.add('active');
+                btnMobilier.classList.remove('active');
+                subAuto.style.display    = 'block';
+                subMobilier.style.display= 'none';
+            } else {
+                autoEl.style.display     = 'none';
+                mobilierEl.style.display = 'block';
+                btnAuto.classList.remove('active');
+                btnMobilier.classList.add('active');
+                subAuto.style.display    = 'none';
+                subMobilier.style.display= 'block';
+            }
+        }
+
+        // ── Setup vidéos ──────────────────────────────────────────────
+        const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        document.querySelectorAll('.video-card').forEach(card => {
+            const video = card.querySelector('video');
+            if (!video) return;
+
+            // Métadonnées + premier frame comme miniature
+            video.preload     = 'metadata';
+            video.muted       = true;
+            video.playsInline = true;
+            video.loop        = true;
+            video.controls    = true;
+
+            video.addEventListener('loadedmetadata', () => {
+                video.currentTime = 0.001;
+            }, { once: true });
+
+            // Wrap dans .video-wrapper si pas déjà fait
+            if (!card.querySelector('.video-wrapper')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'video-wrapper';
+                video.parentNode.insertBefore(wrapper, video);
+                wrapper.appendChild(video);
+            }
+
+            if (isMobile) {
+                // MOBILE : autoplay quand la vidéo est à l'écran
+                const observer = new IntersectionObserver(entries => {
+                    entries.forEach(e => {
+                        if (e.isIntersecting) {
+                            video.play().catch(() => {});
+                        } else {
+                            video.pause();
+                        }
+                    });
+                }, { threshold: 0.5 });
+                observer.observe(video);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -19,12 +19,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Erreur base de données' }, { status: 500 });
     }
 
-    // Si le client existe et que son offre N'EST PAS encore utilisée
     if (client && client.used === false) {
       return NextResponse.json({ canPlay: false });
     }
 
-    // S'il n'existe pas, ou si son offre a été utilisée, il peut rejouer
     return NextResponse.json({ canPlay: true });
 
   } catch (error) {

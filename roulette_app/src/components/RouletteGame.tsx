@@ -5,12 +5,10 @@ import { motion, useMotionValue, useAnimation, animate } from "framer-motion";
 import confetti from "canvas-confetti";
 
 export default function RouletteGame() {
-  // Etats du formulaire
   const [hasRegistered, setHasRegistered] = useState(false);
   const [userInfo, setUserInfo] = useState({ firstName: "", lastName: "", email: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Etats du jeu
   const [isSpinning, setIsSpinning] = useState(false);
   const [wonPrize, setWonPrize] = useState<string | null>(null);
   const [dbError, setDbError] = useState("");
@@ -19,10 +17,8 @@ export default function RouletteGame() {
   const pointerControls = useAnimation();
   type Prize = { text: string; probability: number; color?: string };
 
-  // Couleurs thème clair : alternance blanc / bleu glacé. 
-  // ODD_COLOR est utilisé si le nombre de parts est impair pour éviter que 2 couleurs identiques se touchent.
   const DEFAULT_COLORS = ["#FFFFFF", "#D6EAF8"];
-  const ODD_COLOR = "#EBF5FB"; // Troisième couleur subtile (bleu très très clair)
+  const ODD_COLOR = "#EBF5FB";
 
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +38,6 @@ export default function RouletteGame() {
             color: DEFAULT_COLORS[idx % DEFAULT_COLORS.length]
           })));
         } else {
-          // Fallback if database is completely empty
           setPrizes(Array.from({ length: 6 }).map((_, i) => ({
             text: `Promotion ${i + 1}`,
             probability: Number((100 / 6).toFixed(2)),
@@ -57,7 +52,6 @@ export default function RouletteGame() {
     fetchPrizes();
   }, []);
 
-  // Animation du petit pointeur jaune quand la roue tourne
   useEffect(() => {
     if (prizes.length === 0) return;
 
@@ -124,7 +118,7 @@ export default function RouletteGame() {
 
     const rand = Math.random() * 100;
     let cumulativeProb = 0;
-    let prizeIndex = prizes.length - 1; // Default to last in case of rounding errors (sum < 100)
+    let prizeIndex = prizes.length - 1;
 
     for (let i = 0; i < prizes.length; i++) {
       cumulativeProb += prizes[i].probability;
@@ -134,7 +128,6 @@ export default function RouletteGame() {
       }
     }
 
-    // Visuellement toutes les parts font la même taille
     const equalSlice = 360 / prizes.length;
     const centerAngle = prizeIndex * equalSlice;
 
@@ -150,13 +143,11 @@ export default function RouletteGame() {
     const randomOffset = (Math.random() * (equalSlice * 0.6)) - (equalSlice * 0.3);
     const initialStopRotation = exactCenterRotation + randomOffset;
 
-    // Phase 1 : Rotation rapide avec ralentissement
     await animate(rotation, initialStopRotation, {
       duration: 5.5,
       ease: [0.15, 0.85, 0.2, 1]
     });
 
-    // Phase 2 : Ajustement fluide vers le centre exact
     await animate(rotation, exactCenterRotation, {
       duration: 0.8,
       ease: "easeInOut"
@@ -164,7 +155,6 @@ export default function RouletteGame() {
 
     const prize = prizes[prizeIndex].text;
 
-    // Envoi des infos à la base de données + Envoi Email Brevo !
     try {
       const res = await fetch('/api/clients', {
         method: 'POST',
@@ -183,7 +173,6 @@ export default function RouletteGame() {
     setIsSpinning(false);
     setWonPrize(prize);
 
-    // Explosion de confettis !
     confetti({
       particleCount: 150,
       spread: 70,
@@ -200,7 +189,7 @@ export default function RouletteGame() {
 
     const rand = Math.random() * 100;
     let cumulativeProb = 0;
-    let prizeIndex = prizes.length - 1; // Default to last in case of rounding errors (sum < 100)
+    let prizeIndex = prizes.length - 1;
 
     for (let i = 0; i < prizes.length; i++) {
       cumulativeProb += prizes[i].probability;
@@ -210,7 +199,6 @@ export default function RouletteGame() {
       }
     }
 
-    // Visuellement toutes les parts font la même taille
     const equalSlice = 360 / prizes.length;
     const centerAngle = prizeIndex * equalSlice;
 
@@ -226,28 +214,25 @@ export default function RouletteGame() {
     const randomOffset = (Math.random() * (equalSlice * 0.6)) - (equalSlice * 0.3);
     const initialStopRotation = exactCenterRotation + randomOffset;
 
-    // Phase 1 : Rotation rapide avec ralentissement
     await animate(rotation, initialStopRotation, {
       duration: 5.5,
       ease: [0.15, 0.85, 0.2, 1]
     });
 
-    // Phase 2 : Ajustement fluide vers le centre exact
     await animate(rotation, exactCenterRotation, {
       duration: 0.8,
       ease: "easeInOut"
     });
 
     setIsSpinning(false);
-    // Pas de setWonPrize(prize) ni d'appel BD. On s'arrête là !
   };
 
   const renderSVGWheel = () => {
     const equalSlice = 360 / prizes.length;
     let currentAngleOffset = -90 - equalSlice / 2;
-    const WHEEL_R = 44; // Rayon des parts (laisse de la place pour l'anneau extérieur)
-    const OUTER_R = 49; // Rayon extérieur de l'anneau
-    const INNER_RING_R = 45; // Rayon intérieur de l'anneau
+    const WHEEL_R = 44;
+    const OUTER_R = 49;
+    const INNER_RING_R = 45;
     const CENTER_R = 8;
     const NUM_DOTS = 30;
 
@@ -261,7 +246,7 @@ export default function RouletteGame() {
         {/* Petits points lumineux incrustés dans l'anneau */}
         {Array.from({ length: NUM_DOTS }).map((_, i) => {
           const angle = (i * (360 / NUM_DOTS)) * (Math.PI / 180);
-          const dotR = (OUTER_R + INNER_RING_R) / 2; // Au milieu de l'anneau
+          const dotR = (OUTER_R + INNER_RING_R) / 2;
           return (
             <circle
               key={`dot-${i}`}
@@ -286,13 +271,11 @@ export default function RouletteGame() {
           const endAngle = currentAngleOffset + sliceAngle;
           currentAngleOffset += sliceAngle;
 
-          // Si c'est la toute dernière part d'une roue impaire, on lui donne une 3ème couleur pour éviter de toucher la 1ère.
           let fillColor = DEFAULT_COLORS[i % DEFAULT_COLORS.length];
           if (i === prizes.length - 1 && prizes.length % 2 !== 0) {
             fillColor = ODD_COLOR;
           }
 
-          // Couleur du texte auto (clair sur foncé, foncé sur clair)
           const hex = fillColor.replace('#', '');
           const r = parseInt(hex.substring(0, 2), 16) || 0;
           const g = parseInt(hex.substring(2, 4), 16) || 0;
@@ -326,7 +309,6 @@ export default function RouletteGame() {
           let bestFontSize = 1;
           let bestLines: string[] = [];
 
-          // Algorithme de taille de texte adaptative
           for (let fs = 4.5; fs >= 1.5; fs -= 0.1) {
             const charWidth = fs * 0.85;
             const lineHeight = fs * 1.15;
@@ -357,11 +339,9 @@ export default function RouletteGame() {
             const H_half = totalHeight / 2;
             const W_half = maxWidth / 2;
 
-            // Ne doit pas déborder de la roue
             const R_outer = Math.sqrt(Math.pow(radiusText + W_half, 2) + Math.pow(H_half, 2));
             if (R_outer > WHEEL_R - 2) continue;
 
-            // Ne doit pas toucher le centre
             const r_inner = radiusText - W_half;
             if (r_inner <= CENTER_R + 2) continue;
 

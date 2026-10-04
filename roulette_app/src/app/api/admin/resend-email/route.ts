@@ -10,7 +10,6 @@ export async function POST(request: Request) {
 
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${clientId}`;
 
-    // Envoyer l'email via Brevo
     const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {

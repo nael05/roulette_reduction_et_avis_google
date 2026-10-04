@@ -19,7 +19,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "⚠️ ATTENTION : Cette promotion a DÉJÀ été utilisée !" }, { status: 400 });
     }
 
-    // Marquer l'offre comme utilisée
     await supabaseAdmin
       .from('clients')
       .update({ used: true })

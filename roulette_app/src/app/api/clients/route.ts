@@ -9,7 +9,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Données manquantes' }, { status: 400 });
     }
 
-    // 1. Sauvegarder ou Mettre à jour le client dans Supabase (S'il rejoue après avoir utilisé son code)
     const { data: client, error: dbError } = await supabaseAdmin
       .from('clients')
       .upsert(
@@ -25,10 +24,8 @@ export async function POST(request: Request) {
     }
 
     const clientId = client.id;
-    // Génère une URL vers une image QR Code de cet ID (à afficher dans le mail)
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${clientId}`;
 
-    // 2. Envoyer l'email via Brevo
     const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -37,7 +34,7 @@ export async function POST(request: Request) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        sender: { name: 'Clean Wash & Co', email: 'nael.morellon@ynov.com' }, // L'email expéditeur validé par Brevo
+        sender: { name: 'Clean Wash & Co', email: 'nael.morellon@ynov.com' },
         to: [{ email, name: `${firstName} ${lastName}` }],
         subject: `Félicitations ! Voici votre cadeau : ${wonPrize} 🎉`,
         htmlContent: `
