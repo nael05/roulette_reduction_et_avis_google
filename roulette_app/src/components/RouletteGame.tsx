@@ -68,20 +68,20 @@ export default function RouletteGame() {
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
 
-      // Son sec de type "clack"
+      // Son sec de type "clack" (plus aigu)
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.03);
+      osc.frequency.setValueAtTime(1800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.02);
 
       // Volume faible (pas trop fort)
       gainNode.gain.setValueAtTime(0.08, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
 
       osc.connect(gainNode);
       gainNode.connect(ctx.destination);
 
       osc.start();
-      osc.stop(ctx.currentTime + 0.03);
+      osc.stop(ctx.currentTime + 0.02);
     } catch (e) {
       // Silently ignore if audio is blocked
     }
