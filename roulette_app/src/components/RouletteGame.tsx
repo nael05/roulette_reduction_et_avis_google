@@ -52,6 +52,41 @@ export default function RouletteGame() {
     fetchPrizes();
   }, []);
 
+  const playTickSound = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      
+      if (!(window as any).tickAudioCtx) {
+        (window as any).tickAudioCtx = new AudioContext();
+      }
+      const ctx = (window as any).tickAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      // Son sec de type "clack"
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.03);
+
+      // Volume faible (pas trop fort)
+      gainNode.gain.setValueAtTime(0.08, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.03);
+    } catch (e) {
+      // Silently ignore if audio is blocked
+    }
+  };
+
   useEffect(() => {
     if (prizes.length === 0) return;
 
@@ -74,6 +109,7 @@ export default function RouletteGame() {
 
       if (activeIndex !== lastTickRef.current) {
         lastTickRef.current = activeIndex;
+        playTickSound();
         pointerControls.start({
           rotate: [0, -25, 0],
           transition: { duration: 0.15, ease: "easeOut" }
