@@ -181,52 +181,6 @@ export default function RouletteGame() {
     });
   };
 
-  const testSpinRoulette = async () => {
-    if (isSpinning) return;
-    setIsSpinning(true);
-    setWonPrize(null);
-    setDbError("");
-
-    const rand = Math.random() * 100;
-    let cumulativeProb = 0;
-    let prizeIndex = prizes.length - 1;
-
-    for (let i = 0; i < prizes.length; i++) {
-      cumulativeProb += prizes[i].probability;
-      if (rand <= cumulativeProb) {
-        prizeIndex = i;
-        break;
-      }
-    }
-
-    const equalSlice = 360 / prizes.length;
-    const centerAngle = prizeIndex * equalSlice;
-
-    const currentRot = rotation.get();
-    const currentMod = ((currentRot % 360) + 360) % 360;
-    const targetMod = (360 - (centerAngle % 360)) % 360;
-
-    let addAngle = targetMod - currentMod;
-    if (addAngle < 0) addAngle += 360;
-
-    const exactCenterRotation = currentRot + 2160 + addAngle;
-
-    const randomOffset = (Math.random() * (equalSlice * 0.6)) - (equalSlice * 0.3);
-    const initialStopRotation = exactCenterRotation + randomOffset;
-
-    await animate(rotation, initialStopRotation, {
-      duration: 5.5,
-      ease: [0.15, 0.85, 0.2, 1]
-    });
-
-    await animate(rotation, exactCenterRotation, {
-      duration: 0.8,
-      ease: "easeInOut"
-    });
-
-    setIsSpinning(false);
-  };
-
   const renderSVGWheel = () => {
     const equalSlice = 360 / prizes.length;
     let currentAngleOffset = -90 - equalSlice / 2;
@@ -500,14 +454,6 @@ export default function RouletteGame() {
                   ${isSpinning ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed scale-95' : 'bg-white text-gray-800 border-white/80 hover:scale-105 shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95'}`}
               >
                 {isSpinning ? 'EN COURS...' : 'TOURNER LA ROUE !'}
-              </button>
-              
-              <button
-                onClick={testSpinRoulette}
-                disabled={isSpinning}
-                className={`px-4 py-2 mt-2 rounded bg-gray-500 text-white text-xs ${isSpinning ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}
-              >
-                TEST TOURNER (sans BDD ni Email)
               </button>
             </div>
           ) : (

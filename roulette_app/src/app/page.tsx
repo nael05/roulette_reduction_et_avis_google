@@ -17,7 +17,7 @@ export default function Home() {
   const handleReviewClick = () => {
     localStorage.setItem("hasClickedReview", "true");
     setShowReviewPopup(false);
-    window.open("https://www.google.com", "_blank"); 
+    window.open("https://www.google.com/search?q=https://search.google.com/local/writereview%3Fplaceid%3DChIJM8R6LgDz5kcR2UDNYeKau1U", "_blank"); 
   };
 
   const handleCloseReview = () => {
@@ -73,13 +73,6 @@ export default function Home() {
                   className="w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-primary to-primary-dark text-bg-dark hover:scale-105 transition-transform shadow-[0_4px_20px_rgba(0,240,255,0.4)]"
                 >
                   Nous laisser un avis ⭐
-                </button>
-                
-                <button
-                  onClick={handleCloseReview}
-                  className="w-full py-3 rounded-xl font-semibold text-text-gray hover:text-text-light transition-colors"
-                >
-                  Non merci, je veux juste jouer
                 </button>
               </div>
             </motion.div>
