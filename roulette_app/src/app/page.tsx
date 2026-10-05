@@ -17,7 +17,7 @@ export default function Home() {
   const handleReviewClick = () => {
     localStorage.setItem("hasClickedReview", "true");
     setShowReviewPopup(false);
-    window.open("https://www.google.com/search?q=https://search.google.com/local/writereview%3Fplaceid%3DChIJM8R6LgDz5kcR2UDNYeKau1U", "_blank"); 
+    window.open("https://search.google.com/local/writereview?placeid=ChIJM8R6LgDz5kcR2UDNYeKau1U", "_blank"); 
   };
 
   const handleCloseReview = () => {
