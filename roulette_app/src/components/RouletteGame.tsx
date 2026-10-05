@@ -5,6 +5,7 @@ import { motion, useMotionValue, useAnimation, animate } from "framer-motion";
 import confetti from "canvas-confetti";
 
 export default function RouletteGame() {
+  const [hasSpun, setHasSpun] = useState(false);
   const [hasRegistered, setHasRegistered] = useState(false);
   const [userInfo, setUserInfo] = useState({ firstName: "", lastName: "", email: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -121,21 +122,32 @@ export default function RouletteGame() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (userInfo.firstName && userInfo.lastName && userInfo.email) {
+    if (userInfo.firstName && userInfo.lastName && userInfo.email && wonPrize) {
       setIsSubmitting(true);
       setDbError("");
 
       try {
-        const res = await fetch('/api/check-email', {
+        const resCheck = await fetch('/api/check-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: userInfo.email })
         });
 
-        const data = await res.json();
+        const dataCheck = await resCheck.json();
 
-        if (res.ok && data.canPlay) {
-          setHasRegistered(true);
+        if (resCheck.ok && dataCheck.canPlay) {
+          const resSave = await fetch('/api/clients', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...userInfo, wonPrize: wonPrize })
+          });
+
+          const dataSave = await resSave.json();
+          if (resSave.ok) {
+            setHasRegistered(true);
+          } else {
+            setDbError(dataSave.error || "Une erreur est survenue.");
+          }
         } else {
           setDbError("Vous avez déjà une promotion en cours ! Utilisez-la au comptoir avant de pouvoir rejouer.");
         }
@@ -191,23 +203,9 @@ export default function RouletteGame() {
 
     const prize = prizes[prizeIndex].text;
 
-    try {
-      const res = await fetch('/api/clients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...userInfo, wonPrize: prize })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setDbError(data.error || "Une erreur est survenue.");
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
     setIsSpinning(false);
     setWonPrize(prize);
+    setHasSpun(true);
 
     confetti({
       particleCount: 150,
@@ -408,47 +406,14 @@ export default function RouletteGame() {
 
   return (
     <div className="w-full flex flex-col items-center justify-center py-4">
-
-      {/* 1. ÉCRAN D'INSCRIPTION */}
-      {!hasRegistered ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md mx-auto shadow-2xl border border-white/20"
-        >
-          <h3 className="text-2xl font-black mb-6 text-center text-white">
-            Inscrivez-vous pour jouer !
-          </h3>
-          <form onSubmit={handleRegister} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-1">Prénom</label>
-              <input required type="text" value={userInfo.firstName} onChange={(e) => setUserInfo({ ...userInfo, firstName: e.target.value })} className="w-full bg-[#050814] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all" placeholder="Ex: Lucas" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-1">Nom</label>
-              <input required type="text" value={userInfo.lastName} onChange={(e) => setUserInfo({ ...userInfo, lastName: e.target.value })} className="w-full bg-[#050814] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all" placeholder="Ex: Martin" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-1">Email</label>
-              <input required type="email" value={userInfo.email} onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })} className="w-full bg-[#050814] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all" placeholder="Votre adresse email" />
-            </div>
-            {dbError && <p className="text-red-400 text-sm text-center bg-red-400/10 p-2 rounded-lg">{dbError}</p>}
-            <button disabled={isSubmitting} type="submit" className="mt-4 w-full py-4 rounded-xl font-black text-lg text-[#0A0E27] bg-gradient-to-r from-[#00F0FF] to-[#FF006E] hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,110,0.4)] disabled:opacity-50">
-              {isSubmitting ? "Vérification..." : "TENTER MA CHANCE !"}
-            </button>
-          </form>
-        </motion.div>
-      ) : (
-
-        /* 2. LA ROULETTE & ÉCRAN DE GAIN */
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center w-full"
-        >
-          {/* Wheel Container */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center w-full"
+      >
+        {/* LA ROULETTE EST TOUJOURS VISIBLE JUSQU'A LA FIN */}
+        {!hasRegistered && (
           <div className="relative w-full max-w-[320px] md:max-w-[450px] aspect-square mb-8 mx-auto flex items-center justify-center">
-
             <motion.div
               animate={pointerControls}
               className="absolute -top-3 left-1/2 z-40 origin-top"
@@ -460,7 +425,6 @@ export default function RouletteGame() {
                     <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.15" />
                   </filter>
                 </defs>
-                {/* Teardrop / pin shape: circle + pointed tip */}
                 <path
                   d="M 20 48 L 10 26 A 14 14 0 1 1 30 26 Z"
                   fill="#FFFFFF"
@@ -468,7 +432,6 @@ export default function RouletteGame() {
                   strokeWidth="1.2"
                   filter="url(#pointer-shadow)"
                 />
-                {/* Inner circle decoration */}
                 <circle cx="20" cy="16" r="6" fill="#E8EDF2" stroke="#B0B8C4" strokeWidth="0.8" />
                 <circle cx="20" cy="16" r="3" fill="#D6EAF8" />
               </svg>
@@ -480,47 +443,83 @@ export default function RouletteGame() {
 
             <div className="absolute inset-0 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.4)] pointer-events-none z-10" />
           </div>
+        )}
 
-          {!wonPrize ? (
-            <div className="flex flex-col items-center gap-2">
-              <button
-                onClick={spinRoulette}
-                disabled={isSpinning}
-                className={`px-12 py-5 rounded-full font-black text-xl md:text-2xl tracking-widest uppercase transition-all transform border-2
-                  ${isSpinning ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed scale-95' : 'bg-white text-gray-800 border-white/80 hover:scale-105 shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95'}`}
-              >
-                {isSpinning ? 'EN COURS...' : 'TOURNER LA ROUE !'}
-              </button>
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-center bg-white/10 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/20 w-full max-w-sm relative overflow-hidden"
+        {/* ÉTAPE 1: BOUTON POUR TOURNER */}
+        {!hasSpun && !hasRegistered && (
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={spinRoulette}
+              disabled={isSpinning}
+              className={`px-12 py-5 rounded-full font-black text-xl md:text-2xl tracking-widest uppercase transition-all transform border-2
+                ${isSpinning ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed scale-95' : 'bg-white text-gray-800 border-white/80 hover:scale-105 shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95'}`}
             >
-              {/* Effet lumineux en fond */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#FF006E]/20 to-[#00F0FF]/20" />
+              {isSpinning ? 'EN COURS...' : 'TOURNER LA ROUE !'}
+            </button>
+          </div>
+        )}
 
-              <div className="relative z-10">
-                <h3 className="text-3xl font-black text-white mb-2">Bravo {userInfo.firstName} !</h3>
-                <p className="text-lg text-gray-300 mb-6">Vous avez remporté :</p>
-
-                <div className="text-2xl font-bold text-[#0A0E27] bg-[#00F0FF] py-4 px-4 rounded-xl mb-6 shadow-[0_0_20px_rgba(0,240,255,0.4)]">
-                  {wonPrize}
-                </div>
-
-                {dbError ? (
-                  <p className="text-sm font-bold text-red-400 bg-red-400/10 p-3 rounded-lg border border-red-400/20">{dbError}</p>
-                ) : (
-                  <p className="text-sm text-green-300 font-medium">
-                    ✅ Votre QR Code a été envoyé sur <b>{userInfo.email}</b>.
-                  </p>
-                )}
+        {/* ÉTAPE 2: FORMULAIRE APRÈS AVOIR TOURNÉ */}
+        {hasSpun && !hasRegistered && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md mx-auto shadow-2xl border border-white/20"
+          >
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-black text-white mb-2">Vous avez gagné :</h3>
+              <div className="text-xl font-bold text-[#0A0E27] bg-[#00F0FF] py-2 px-4 rounded-xl inline-block shadow-[0_0_15px_rgba(0,240,255,0.4)]">
+                {wonPrize}
               </div>
-            </motion.div>
-          )}
-        </motion.div>
-      )}
+            </div>
+            
+            <p className="text-sm text-gray-300 mb-4 text-center">Entrez vos coordonnées pour recevoir votre QR Code de réduction :</p>
+
+            <form onSubmit={handleRegister} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-1">Prénom</label>
+                <input required type="text" value={userInfo.firstName} onChange={(e) => setUserInfo({ ...userInfo, firstName: e.target.value })} className="w-full bg-[#050814] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all" placeholder="Ex: Lucas" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-1">Nom</label>
+                <input required type="text" value={userInfo.lastName} onChange={(e) => setUserInfo({ ...userInfo, lastName: e.target.value })} className="w-full bg-[#050814] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all" placeholder="Ex: Martin" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-1">Email</label>
+                <input required type="email" value={userInfo.email} onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })} className="w-full bg-[#050814] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all" placeholder="Votre adresse email" />
+              </div>
+              {dbError && <p className="text-red-400 text-sm text-center bg-red-400/10 p-2 rounded-lg">{dbError}</p>}
+              <button disabled={isSubmitting} type="submit" className="mt-2 w-full py-4 rounded-xl font-black text-lg text-[#0A0E27] bg-gradient-to-r from-[#00F0FF] to-[#FF006E] hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,110,0.4)] disabled:opacity-50">
+                {isSubmitting ? "Envoi en cours..." : "RÉCUPÉRER MON LOT"}
+              </button>
+            </form>
+          </motion.div>
+        )}
+
+        {/* ÉTAPE 3: SUCCÈS */}
+        {hasRegistered && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 text-center bg-white/10 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/20 w-full max-w-sm relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF006E]/20 to-[#00F0FF]/20" />
+
+            <div className="relative z-10">
+              <h3 className="text-3xl font-black text-white mb-2">Bravo {userInfo.firstName} !</h3>
+              <p className="text-lg text-gray-300 mb-6">Vous avez remporté :</p>
+
+              <div className="text-2xl font-bold text-[#0A0E27] bg-[#00F0FF] py-4 px-4 rounded-xl mb-6 shadow-[0_0_20px_rgba(0,240,255,0.4)]">
+                {wonPrize}
+              </div>
+
+              <p className="text-sm text-green-300 font-medium">
+                ✅ Votre QR Code a été envoyé sur <b>{userInfo.email}</b>.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 }
