@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { isAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +55,10 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  }
+
   try {
     const { promotions } = await request.json();
     

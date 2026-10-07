@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { isAdmin } from '@/lib/auth';
 
 export async function PUT(request: Request) {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  }
+
   try {
     const { clientId } = await request.json();
 

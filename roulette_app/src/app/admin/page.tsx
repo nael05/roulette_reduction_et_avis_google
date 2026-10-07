@@ -30,6 +30,8 @@ const DEFAULT_COLORS = ["#00F0FF", "#1a1f3a", "#FF006E", "#0A0E27", "#5FF4FF", "
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [pwd, setPwd] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [manualSearchQuery, setManualSearchQuery] = useState("");
 
@@ -167,10 +169,25 @@ export default function AdminPage() {
     setPromotions(promos);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsAuthenticated(true);
-    fetchData();
+    setIsLoggingIn(true);
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      });
+      if (res.ok) {
+        setIsAuthenticated(true);
+        fetchData();
+      } else {
+        alert("Mot de passe incorrect");
+      }
+    } catch (error) {
+      alert("Erreur de connexion au serveur.");
+    }
+    setIsLoggingIn(false);
   };
 
   const fetchData = async () => {
@@ -443,11 +460,13 @@ export default function AdminPage() {
             <input 
               type="password" 
               placeholder="Mot de passe d'accès" 
+              value={pwd}
+              onChange={(e) => setPwd(e.target.value)}
               required
               className="w-full bg-[#0A0E27]/50 border border-white/20 rounded-xl p-4 text-white focus:outline-none focus:border-[#00F0FF]"
             />
-            <button type="submit" className="w-full py-4 rounded-xl font-bold text-[#0A0E27] bg-[#00F0FF] hover:bg-white transition-colors">
-              Se Connecter
+            <button disabled={isLoggingIn} type="submit" className="w-full py-4 rounded-xl font-bold text-[#0A0E27] bg-[#00F0FF] hover:bg-white transition-colors disabled:opacity-50">
+              {isLoggingIn ? "Connexion..." : "Se Connecter"}
             </button>
           </form>
         </div>

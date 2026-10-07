@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { isAdmin as checkIsAdmin } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -8,8 +9,14 @@ export async function POST(request: Request) {
     if (!firstName || !lastName || !email || !wonPrize) {
       return NextResponse.json({ error: 'Données manquantes' }, { status: 400 });
     }
+    
+    // Verifier la sécurité de manière stricte côté serveur
+    let isRequestAdmin = false;
+    if (isAdmin) {
+      isRequestAdmin = await checkIsAdmin();
+    }
 
-    const finalPrize = isAdmin ? `[VALIDATED]${wonPrize}` : wonPrize;
+    const finalPrize = isRequestAdmin ? `[VALIDATED]${wonPrize}` : wonPrize;
 
     const { data: client, error: dbError } = await supabaseAdmin
       .from('clients')
@@ -27,7 +34,7 @@ export async function POST(request: Request) {
 
     const clientId = client.id;
 
-    if (isAdmin) {
+    if (isRequestAdmin) {
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${clientId}`;
       const conditionHtml = condition ? `<p style="font-size: 14px; color: #555; margin-top: 15px; font-style: italic;"><strong>Conditions d'utilisation :</strong> ${condition}</p>` : '';
 
