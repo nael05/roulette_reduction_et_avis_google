@@ -1065,8 +1065,6 @@ export default function AdminPage() {
                 <QRCodeSVG id="qr-code-svg" value="https://roulette-cleanwash.fr" size={180} className="md:w-[220px] md:h-[220px] print:w-[300px] print:h-[300px]" />
               </div>
               
-              <p className="text-xl md:text-2xl font-black text-[#FF006E] tracking-wider print:hidden">CADEAUX À GAGNER</p>
-              
               <div className="absolute bottom-4 right-4 flex gap-3 print:hidden">
                 <button 
                   onClick={handleDownloadQR}
