@@ -18,19 +18,19 @@ export async function GET() {
     const decodedPromos = promotions.map((p: any) => {
       const parts = p.text_content.split('||');
       if (parts.length >= 5) {
-        // prob||color||isLost||condition||text
+
         const prob = parseFloat(parts[0]);
         if (!isNaN(prob)) {
           return { ...p, probability: prob, color: parts[1], isLost: parts[2] === '1', condition: parts[3], text_content: parts.slice(4).join('||') };
         }
       } else if (parts.length === 4) {
-        // prob||color||isLost||text
+
         const prob = parseFloat(parts[0]);
         if (!isNaN(prob)) {
           return { ...p, probability: prob, color: parts[1], isLost: parts[2] === '1', condition: '', text_content: parts.slice(3).join('||') };
         }
       } else if (parts.length >= 3) {
-        // prob||color||text
+
         const prob = parseFloat(parts[0]);
         if (!isNaN(prob)) {
           const text = parts.slice(2).join('||');

@@ -9,8 +9,7 @@ export async function POST(request: Request) {
     if (!firstName || !lastName || !email || !wonPrize) {
       return NextResponse.json({ error: 'Données manquantes' }, { status: 400 });
     }
-    
-    // Verifier la sécurité de manière stricte côté serveur
+
     let isRequestAdmin = false;
     if (isAdmin) {
       isRequestAdmin = await checkIsAdmin();

@@ -27,8 +27,7 @@ export default function RouletteGame() {
   const [wonPrize, setWonPrize] = useState<string | null>(null);
   const [isLostResult, setIsLostResult] = useState(false);
   const [dbError, setDbError] = useState("");
-  
-  // Geolocation states
+
   const [isLocationVerified, setIsLocationVerified] = useState(false);
   const [locationError, setLocationError] = useState("");
   const [isCheckingLocation, setIsCheckingLocation] = useState(false);
@@ -92,12 +91,10 @@ export default function RouletteGame() {
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
 
-      // Son sec de type "clack" (plus aigu)
       osc.type = 'sine';
       osc.frequency.setValueAtTime(1800, ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.02);
 
-      // Volume faible (pas trop fort)
       gainNode.gain.setValueAtTime(0.08, ctx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
 
@@ -107,7 +104,7 @@ export default function RouletteGame() {
       osc.start();
       osc.stop(ctx.currentTime + 0.02);
     } catch (e) {
-      // Silently ignore if audio is blocked
+
     }
   };
 
@@ -164,7 +161,7 @@ export default function RouletteGame() {
       (position) => {
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
-        // Coordonnées du centre de lavage
+
         const distance = getDistanceFromLatLonInM(userLat, userLng, 49.011021, 2.030300);
 
         if (distance <= 200) {

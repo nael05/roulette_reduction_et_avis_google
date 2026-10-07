@@ -37,7 +37,6 @@ body {
   font-family: var(--font-body);
 }
 
-/* Background effects */
 .hero-background {
   position: fixed;
   top: 0;

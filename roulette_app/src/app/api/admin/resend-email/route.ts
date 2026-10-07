@@ -14,7 +14,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Données manquantes' }, { status: 400 });
     }
 
-    // Save validation status in DB
     const { error: dbError } = await supabaseAdmin
       .from('clients')
       .update({ won_prize: `[VALIDATED]${wonPrize.replace('[VALIDATED]', '')}` })

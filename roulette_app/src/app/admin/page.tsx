@@ -198,7 +198,7 @@ export default function AdminPage() {
     const ctx = canvas.getContext("2d");
     const img = new Image();
     img.onload = () => {
-      // Pour une meilleure qualité, on multiplie la taille
+
       const scale = 4;
       canvas.width = img.width * scale;
       canvas.height = img.height * scale;

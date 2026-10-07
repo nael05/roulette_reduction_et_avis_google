@@ -1,5 +1,7 @@
 # Projet Clean Wash & Co
 
+**Projet Client**
+
 Ce dépôt regroupe les différentes applications web et sites développés pour l'entreprise **Clean Wash & Co**. Il est composé d'une application interactive de fidélisation (jeu de roulette) pour récolter des avis Google, ainsi que du site vitrine statique présentant les différents services de l'entreprise.
 
 ## 🛠️ Stack Technique
@@ -27,15 +29,9 @@ Avant de lancer le projet, assurez-vous de disposer des éléments suivants :
 
 ## 🚀 Installation et Lancement Local
 
-Vous pouvez utiliser le script automatisé fourni pour démarrer facilement les projets sur Windows.
+Vous pouvez lancer les projets de manière indépendante :
 
-### Méthode 1 : Lancement Rapide (Windows)
-1. Double-cliquez sur le fichier **`run.bat`** situé à la racine du projet.
-2. Un menu interactif s'ouvrira, vous permettant de choisir entre le lancement de l'application Next.js (Roulette) ou l'ouverture du site vitrine statique.
-
-### Méthode 2 : Lancement Manuel (Lignes de commande)
-
-#### Pour l'application Roulette (Next.js) :
+### Lancement de l'application Roulette (Next.js) :
 ```bash
 # 1. Naviguez dans le dossier de l'application
 cd roulette_app
@@ -48,7 +44,7 @@ npm run dev
 ```
 L'application sera accessible sur : [http://localhost:3000](http://localhost:3000)
 
-#### Pour le site vitrine (HTML/CSS/JS) :
+### Lancement du site vitrine (HTML/CSS/JS) :
 ```bash
 # 1. Naviguez dans le dossier du site
 cd site_clean_wash_and_co
@@ -71,6 +67,5 @@ npx serve .
 │   ├── index.html          # Page d'accueil du site vitrine
 │   ├── script.js           # Logique JavaScript front-end
 │   └── styles.css          # Styles CSS du site
-├── run.bat                 # Script de lancement rapide (Windows)
 └── README.md               # Documentation principale du projet
 ```
