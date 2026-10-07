@@ -190,6 +190,32 @@ export default function AdminPage() {
     setIsLoggingIn(false);
   };
 
+  const handleDownloadQR = () => {
+    const svg = document.getElementById("qr-code-svg");
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.onload = () => {
+      // Pour une meilleure qualité, on multiplie la taille
+      const scale = 4;
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      if (ctx) {
+        ctx.fillStyle = "white"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      }
+      const pngFile = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.download = "QR_Code_Roulette.png";
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+  };
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -505,10 +531,10 @@ export default function AdminPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#050814] text-white flex flex-col md:flex-row relative pb-20 md:pb-0">
+    <div className="min-h-screen bg-[#050814] text-white flex flex-col md:flex-row relative pb-20 md:pb-0 print:bg-white print:text-black">
       
       {/* 📱 TOP HEADER (Mobile Only) */}
-      <header className="md:hidden flex items-center justify-between p-4 bg-[#0A0E27] border-b border-white/5 sticky top-0 z-50">
+      <header className="md:hidden flex items-center justify-between p-4 bg-[#0A0E27] border-b border-white/5 sticky top-0 z-50 print:hidden">
         <h1 className="text-xl font-[family-name:var(--font-orbitron)] font-black">
           <span className="text-white">CLEAN</span> <span className="text-[#00F0FF] drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]">WASH</span> <span className="font-normal text-white">& CO</span>
         </h1>
@@ -518,7 +544,7 @@ export default function AdminPage() {
       </header>
 
       {/* 💻 SIDEBAR (Desktop Only) */}
-      <aside className="hidden md:flex w-64 bg-[#0A0E27] border-r border-white/5 flex-col h-screen sticky top-0">
+      <aside className="hidden md:flex w-64 bg-[#0A0E27] border-r border-white/5 flex-col h-screen sticky top-0 print:hidden">
         <div className="p-6 border-b border-white/5">
           <h1 className="text-2xl font-[family-name:var(--font-orbitron)] font-black">
             <span className="text-white">CLEAN</span> <span className="text-[#00F0FF] drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]">WASH</span> <span className="font-normal text-white">& CO</span>
@@ -543,7 +569,7 @@ export default function AdminPage() {
       </aside>
 
       {/* 📱 BOTTOM NAVIGATION (Mobile Only) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0A0E27]/90 backdrop-blur-xl border-t border-white/10 z-50 flex justify-around items-center p-2 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0A0E27]/90 backdrop-blur-xl border-t border-white/10 z-50 flex justify-around items-center p-2 pb-safe print:hidden">
         <BottomNavButton icon={<LayoutDashboard size={22} />} label="Stats" active={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} />
         <BottomNavButton icon={<ScanLine size={24} />} label="Scanner" active={activeTab === "scanner"} onClick={() => setActiveTab("scanner")} isScanner />
         <BottomNavButton icon={<Users size={22} />} label="Clients" active={activeTab === "clients"} onClick={() => setActiveTab("clients")} />
@@ -551,7 +577,7 @@ export default function AdminPage() {
       </nav>
 
       {/* 📌 MAIN CONTENT */}
-      <main className="flex-1 p-4 md:p-8 w-full overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 w-full overflow-y-auto print:p-0 print:overflow-visible">
         
         {/* TAB: DASHBOARD */}
         {activeTab === "dashboard" && (
@@ -1027,27 +1053,36 @@ export default function AdminPage() {
         {/* TAB: PRINT */}
         {activeTab === "print" && (
           <div className="space-y-6 pb-20 md:pb-0">
-            <h2 className="text-2xl font-bold md:hidden">Affiche Comptoir</h2>
+            <h2 className="text-2xl font-bold md:hidden print:hidden">Affiche Comptoir</h2>
             
-            <div className="bg-white p-8 md:p-12 rounded-3xl max-w-md mx-auto text-center shadow-2xl relative overflow-hidden print:shadow-none print:p-0">
+            <div className="bg-white p-8 md:p-12 rounded-3xl max-w-md mx-auto text-center shadow-2xl relative overflow-hidden print:shadow-none print:p-0 print:max-w-none print:flex print:items-center print:justify-center print:h-screen">
               <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-[#00F0FF] to-[#FF006E] print:hidden" />
-              <h3 className="text-2xl md:text-3xl font-black text-[#0A0E27] mb-2 uppercase mt-2">Scannez & Jouez !</h3>
-              <p className="text-gray-600 font-medium mb-6 md:mb-8 text-sm md:text-base px-4">Tentez votre chance à notre roulette 100% gagnante.</p>
+              <h3 className="text-2xl md:text-3xl font-black text-[#0A0E27] mb-2 uppercase mt-2 print:hidden">Scannez & Jouez !</h3>
+              <p className="text-gray-600 font-medium mb-6 md:mb-8 text-sm md:text-base px-4 print:hidden">Tentez votre chance à notre roulette 100% gagnante.</p>
               
-              <div className="bg-white p-3 md:p-4 rounded-2xl border-4 border-[#0A0E27] inline-block shadow-xl mb-6 md:mb-8">
+              <div className="bg-white p-3 md:p-4 rounded-2xl border-4 border-[#0A0E27] inline-block shadow-xl mb-6 md:mb-8 print:border-none print:shadow-none print:m-0 print:p-0">
                 {/* On pourrait mettre l'URL du site en production ici ! */}
-                <QRCodeSVG value="https://roulette-cleanwash.fr" size={180} className="md:w-[220px] md:h-[220px]" />
+                <QRCodeSVG id="qr-code-svg" value="https://roulette-cleanwash.fr" size={180} className="md:w-[220px] md:h-[220px] print:w-[300px] print:h-[300px]" />
               </div>
               
-              <p className="text-xl md:text-2xl font-black text-[#FF006E] tracking-wider">CADEAUX À GAGNER</p>
+              <p className="text-xl md:text-2xl font-black text-[#FF006E] tracking-wider print:hidden">CADEAUX À GAGNER</p>
               
-              <button 
-                onClick={() => window.print()}
-                className="absolute bottom-4 right-4 bg-[#0A0E27] text-white p-4 rounded-full hover:bg-[#00F0FF] hover:text-[#0A0E27] transition-all print:hidden shadow-xl hover:scale-110 active:scale-95"
-                title="Imprimer l'affiche"
-              >
-                <Printer size={24} />
-              </button>
+              <div className="absolute bottom-4 right-4 flex gap-3 print:hidden">
+                <button 
+                  onClick={handleDownloadQR}
+                  className="bg-[#0A0E27] text-white p-4 rounded-full hover:bg-[#FF006E] hover:text-white transition-all shadow-xl hover:scale-110 active:scale-95"
+                  title="Télécharger le QR Code en image"
+                >
+                  <Download size={24} />
+                </button>
+                <button 
+                  onClick={() => window.print()}
+                  className="bg-[#0A0E27] text-white p-4 rounded-full hover:bg-[#00F0FF] hover:text-[#0A0E27] transition-all shadow-xl hover:scale-110 active:scale-95"
+                  title="Imprimer l'affiche"
+                >
+                  <Printer size={24} />
+                </button>
+              </div>
             </div>
           </div>
         )}
