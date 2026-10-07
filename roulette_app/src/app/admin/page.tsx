@@ -13,6 +13,7 @@ type Client = {
   won_prize: string;
   used: boolean;
   created_at: string;
+  is_validated?: boolean;
 };
 
 type Promo = {
@@ -20,6 +21,8 @@ type Promo = {
   text_content: string;
   probability?: number;
   color?: string;
+  isLost?: boolean;
+  condition?: string;
 };
 
 const DEFAULT_COLORS = ["#00F0FF", "#1a1f3a", "#FF006E", "#0A0E27", "#5FF4FF", "#1a1f3a"];
@@ -111,7 +114,9 @@ export default function AdminPage() {
       id: newId,
       text_content: `Promotion ${newId}`,
       probability: 0,
-      color: DEFAULT_COLORS[(newPromos.length) % DEFAULT_COLORS.length]
+      color: DEFAULT_COLORS[(newPromos.length) % DEFAULT_COLORS.length],
+      isLost: false,
+      condition: ''
     });
     recalculateProbabilities(lockedFields, newPromos);
   };
@@ -185,7 +190,9 @@ export default function AdminPage() {
           probability: p.probability !== undefined && p.probability !== null 
             ? Number(p.probability) 
             : Number((100 / promosData.promotions.length).toFixed(2)),
-          color: p.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length]
+          color: p.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+          isLost: !!p.isLost,
+          condition: p.condition || ''
         }));
         
         if (loadedPromos.length === 0) {
@@ -193,7 +200,9 @@ export default function AdminPage() {
             id: i + 1,
             text_content: `Promotion ${i + 1}`,
             probability: Number((100 / 6).toFixed(2)),
-            color: DEFAULT_COLORS[i % DEFAULT_COLORS.length]
+            color: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+            isLost: false,
+            condition: ''
           }));
         }
 
@@ -317,6 +326,9 @@ export default function AdminPage() {
         return;
       }
 
+      const matchedPromo = promotions.find(p => p.text_content === prize);
+      const condition = manualPromoPrizeType === "wheel" ? (matchedPromo?.condition || "") : "";
+
       const res = await fetch('/api/clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -324,7 +336,9 @@ export default function AdminPage() {
           firstName: clientData.firstName,
           lastName: clientData.lastName,
           email: clientData.email,
-          wonPrize: prize
+          wonPrize: prize,
+          condition: condition,
+          isAdmin: true
         })
       });
 
@@ -363,8 +377,16 @@ export default function AdminPage() {
     });
   };
 
-  const handleResendEmail = (client: Client) => {
-    showConfirm(`Renvoyer l'email avec le QR code à ${client.email} ?`, async () => {
+  const handleValidateAndSend = (client: Client) => {
+    const isFirstTime = !client.is_validated;
+    const msg = isFirstTime 
+      ? `Valider le lot de ${client.first_name} et lui envoyer son QR code par email ?`
+      : `Renvoyer l'email avec le QR code à ${client.email} ?`;
+
+    const matchedPromo = promotions.find(p => p.text_content === client.won_prize);
+    const condition = matchedPromo?.condition || "";
+
+    showConfirm(msg, async () => {
       try {
         const res = await fetch('/api/admin/resend-email', {
           method: 'POST',
@@ -374,15 +396,17 @@ export default function AdminPage() {
             firstName: client.first_name,
             lastName: client.last_name,
             email: client.email,
-            wonPrize: client.won_prize
+            wonPrize: client.won_prize,
+            condition: condition
           })
         });
         
         const data = await res.json();
         if (res.ok) {
-          showToast("Email renvoyé avec succès !", "success");
+          showToast(isFirstTime ? "Validé et envoyé !" : "Email renvoyé avec succès !", "success");
+          fetchData();
         } else {
-          showToast(data.error || "Erreur lors du renvoi de l'email.", "error");
+          showToast(data.error || "Erreur.", "error");
         }
       } catch (error) {
         console.error(error);
@@ -713,13 +737,22 @@ export default function AdminPage() {
                         </td>
                         <td className="p-4 text-gray-500">{new Date(c.created_at).toLocaleString('fr-FR')}</td>
                         <td className="p-4 flex items-center gap-2">
-                          <button 
-                            onClick={() => handleResendEmail(c)}
-                            title="Renvoyer l'email"
-                            className="text-[#00F0FF] hover:text-white p-1 bg-[#00F0FF]/10 hover:bg-[#00F0FF]/30 rounded-md transition-colors"
-                          >
-                            <Mail size={16} />
-                          </button>
+                          {!c.is_validated && !c.won_prize.includes("ANNULÉE") ? (
+                            <button 
+                              onClick={() => handleValidateAndSend(c)}
+                              className="bg-green-500/20 text-green-400 hover:bg-green-500/30 px-3 py-1.5 rounded-md text-xs font-bold border border-green-500/30 transition-colors flex items-center gap-2"
+                            >
+                              <Send size={14} /> VALIDER & ENVOYER
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleValidateAndSend(c)}
+                              title="Renvoyer l'email"
+                              className="text-[#00F0FF] hover:text-white p-1 bg-[#00F0FF]/10 hover:bg-[#00F0FF]/30 rounded-md transition-colors"
+                            >
+                              <Mail size={16} />
+                            </button>
+                          )}
                           {c.used ? (
                             <span className="inline-flex items-center gap-1 text-green-400 bg-green-400/10 border border-green-400/20 px-2 py-1 rounded-md text-xs font-bold">
                               <CheckCircle2 size={12} /> UTILISÉ
@@ -727,7 +760,7 @@ export default function AdminPage() {
                           ) : (
                             <>
                               <span className="inline-flex items-center gap-1 text-orange-400 bg-orange-400/10 border border-orange-400/20 px-2 py-1 rounded-md text-xs font-bold">
-                                EN ATTENTE
+                                {c.is_validated ? 'EN ATTENTE' : 'NON VALIDÉ'}
                               </span>
                               <button 
                                 onClick={() => handleRevoke(c.id)}
@@ -787,12 +820,21 @@ export default function AdminPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <button 
-                        onClick={() => handleResendEmail(c)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 py-3 rounded-xl font-semibold transition-colors border border-blue-500/20 text-sm"
-                      >
-                        <Mail size={16} /> Email
-                      </button>
+                      {!c.is_validated && !c.won_prize.includes("ANNULÉE") ? (
+                        <button 
+                          onClick={() => handleValidateAndSend(c)}
+                          className="flex-1 flex items-center justify-center gap-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 py-3 rounded-xl font-bold transition-colors border border-green-500/30 text-sm"
+                        >
+                          <Send size={16} /> VALIDER & ENVOYER
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => handleValidateAndSend(c)}
+                          className="flex-1 flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 py-3 rounded-xl font-semibold transition-colors border border-blue-500/20 text-sm"
+                        >
+                          <Mail size={16} /> Renvoyer Email
+                        </button>
+                      )}
                       
                       {!c.used && (
                         <button 
@@ -841,24 +883,75 @@ export default function AdminPage() {
                   <p className="text-center text-gray-500 py-8 animate-pulse">Chargement des promotions...</p>
                 ) : promotions.map((promo, idx) => (
                   <div key={promo.id} className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-[#050814] p-4 rounded-2xl border border-white/5 hover:border-white/10 transition-all shadow-lg group">
-                    <div className="flex items-center gap-3 w-full sm:flex-1">
-                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-[#00F0FF] font-black text-sm border border-white/10 shadow-[0_0_10px_rgba(0,240,255,0.1)]">
-                        {idx + 1}
-                      </span>
-                      <input 
-                        type="text" 
-                        value={promo.text_content}
-                        onChange={(e) => {
-                          const newPromos = [...promotions];
-                          newPromos[idx].text_content = e.target.value;
-                          setPromotions(newPromos);
-                        }}
-                        placeholder="Nom du lot..."
-                        className="w-full bg-transparent border-none px-2 py-2 text-base md:text-lg focus:outline-none focus:ring-0 text-white font-semibold placeholder:text-gray-600"
-                      />
+                    <div className="w-full sm:flex-1">
+                      <div className="flex items-center gap-3">
+                        <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-[#00F0FF] font-black text-sm border border-white/10 shadow-[0_0_10px_rgba(0,240,255,0.1)]">
+                          {idx + 1}
+                        </span>
+                        <input 
+                          type="text" 
+                          value={promo.text_content}
+                          onChange={(e) => {
+                            const newPromos = [...promotions];
+                            newPromos[idx].text_content = e.target.value;
+                            setPromotions(newPromos);
+                          }}
+                          placeholder="Nom du lot..."
+                          className="w-full bg-transparent border-none px-2 py-2 text-base md:text-lg focus:outline-none focus:ring-0 text-white font-semibold placeholder:text-gray-600"
+                        />
+                      </div>
+                      
+                      {((promo.condition && promo.condition.length > 0) || (promo as any).showCondition) ? (
+                        <div className="mt-2 pl-11 pr-2">
+                          <input
+                            type="text"
+                            value={promo.condition || ''}
+                            onChange={(e) => {
+                              const newPromos = [...promotions];
+                              newPromos[idx].condition = e.target.value;
+                              setPromotions(newPromos);
+                            }}
+                            placeholder="Condition d'utilisation (ex: Valable 1 mois)..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#00F0FF]"
+                          />
+                        </div>
+                      ) : (
+                        !promo.isLost && (
+                          <div className="mt-2 pl-11">
+                            <button
+                              onClick={() => {
+                                const newPromos = [...promotions];
+                                (newPromos[idx] as any).showCondition = true;
+                                setPromotions(newPromos);
+                              }}
+                              className="text-xs text-[#00F0FF] opacity-70 hover:opacity-100 transition-opacity"
+                            >
+                              + Ajouter une condition
+                            </button>
+                          </div>
+                        )
+                      )}
                     </div>
                     
                     <div className="flex items-center justify-between w-full sm:w-auto gap-4 pt-4 sm:pt-0 border-t sm:border-t-0 border-white/5 sm:border-l sm:pl-4">
+                      
+                      <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer hover:text-white mr-2">
+                        <input
+                          type="checkbox"
+                          checked={!!promo.isLost}
+                          onChange={(e) => {
+                            const newPromos = [...promotions];
+                            newPromos[idx].isLost = e.target.checked;
+                            if (e.target.checked && newPromos[idx].text_content.startsWith("Promotion")) {
+                              newPromos[idx].text_content = "PERDU";
+                            }
+                            setPromotions(newPromos);
+                          }}
+                          className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#FF006E] focus:ring-[#FF006E] focus:ring-offset-0 cursor-pointer"
+                        />
+                        <span title="Si coché, le client ne gagne rien">Perdu</span>
+                      </label>
+
                       <div className="flex items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10 focus-within:border-[#00F0FF]/50 transition-colors">
                         <input 
                           type="number"

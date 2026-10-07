@@ -16,18 +16,35 @@ export async function GET() {
 
     const decodedPromos = promotions.map((p: any) => {
       const parts = p.text_content.split('||');
-      if (parts.length >= 3) {
+      if (parts.length >= 5) {
+        // prob||color||isLost||condition||text
         const prob = parseFloat(parts[0]);
         if (!isNaN(prob)) {
-          return { ...p, probability: prob, color: parts[1], text_content: parts.slice(2).join('||') };
+          return { ...p, probability: prob, color: parts[1], isLost: parts[2] === '1', condition: parts[3], text_content: parts.slice(4).join('||') };
+        }
+      } else if (parts.length === 4) {
+        // prob||color||isLost||text
+        const prob = parseFloat(parts[0]);
+        if (!isNaN(prob)) {
+          return { ...p, probability: prob, color: parts[1], isLost: parts[2] === '1', condition: '', text_content: parts.slice(3).join('||') };
+        }
+      } else if (parts.length >= 3) {
+        // prob||color||text
+        const prob = parseFloat(parts[0]);
+        if (!isNaN(prob)) {
+          const text = parts.slice(2).join('||');
+          const isLost = text.toLowerCase().includes('perdu');
+          return { ...p, probability: prob, color: parts[1], isLost: isLost, condition: '', text_content: text };
         }
       } else if (parts.length === 2) {
         const prob = parseFloat(parts[0]);
         if (!isNaN(prob)) {
-          return { ...p, probability: prob, text_content: parts.slice(1).join('||') };
+          const text = parts.slice(1).join('||');
+          const isLost = text.toLowerCase().includes('perdu');
+          return { ...p, probability: prob, text_content: text, isLost: isLost, condition: '' };
         }
       }
-      return { ...p, probability: null };
+      return { ...p, probability: null, isLost: false, condition: '' };
     });
 
     return NextResponse.json({ promotions: decodedPromos });
@@ -41,7 +58,7 @@ export async function PUT(request: Request) {
     const { promotions } = await request.json();
     
     const encodedPromos = promotions.map((p: any) => ({
-      text_content: `${p.probability !== undefined ? p.probability : (100 / promotions.length)}||${p.color || '#00F0FF'}||${p.text_content}`
+      text_content: `${p.probability !== undefined ? p.probability : (100 / promotions.length)}||${p.color || '#00F0FF'}||${p.isLost ? '1' : '0'}||${p.condition || ''}||${p.text_content}`
     }));
 
     const { error: deleteError } = await supabaseAdmin

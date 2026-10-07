@@ -4,6 +4,19 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useAnimation, animate } from "framer-motion";
 import confetti from "canvas-confetti";
 
+function getDistanceFromLatLonInM(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371e3; // Rayon de la terre en mètres
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c;
+  return d;
+}
+
 export default function RouletteGame() {
   const [hasSpun, setHasSpun] = useState(false);
   const [hasRegistered, setHasRegistered] = useState(false);
@@ -12,11 +25,19 @@ export default function RouletteGame() {
 
   const [isSpinning, setIsSpinning] = useState(false);
   const [wonPrize, setWonPrize] = useState<string | null>(null);
+  const [isLostResult, setIsLostResult] = useState(false);
   const [dbError, setDbError] = useState("");
+  
+  // Geolocation states
+  const [isLocationVerified, setIsLocationVerified] = useState(false);
+  const [locationError, setLocationError] = useState("");
+  const [isCheckingLocation, setIsCheckingLocation] = useState(false);
+
+  const formRef = useRef<HTMLDivElement>(null);
 
   const rotation = useMotionValue(0);
   const pointerControls = useAnimation();
-  type Prize = { text: string; probability: number; color?: string };
+  type Prize = { text: string; probability: number; color?: string; isLost?: boolean };
 
   const DEFAULT_COLORS = ["#FFFFFF", "#D6EAF8"];
   const ODD_COLOR = "#EBF5FB";
@@ -36,13 +57,15 @@ export default function RouletteGame() {
             probability: p.probability !== undefined && p.probability !== null
               ? Number(p.probability)
               : Number((100 / data.promotions.length).toFixed(2)),
-            color: DEFAULT_COLORS[idx % DEFAULT_COLORS.length]
+            color: DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
+            isLost: !!p.isLost
           })));
         } else {
           setPrizes(Array.from({ length: 6 }).map((_, i) => ({
             text: `Promotion ${i + 1}`,
             probability: Number((100 / 6).toFixed(2)),
-            color: DEFAULT_COLORS[i % DEFAULT_COLORS.length]
+            color: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+            isLost: false
           })));
         }
       } catch (error) {
@@ -120,8 +143,57 @@ export default function RouletteGame() {
     return () => unsubscribe();
   }, [rotation, pointerControls, prizes]);
 
+  const handleLocationCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    if (!checked) {
+      setIsLocationVerified(false);
+      setLocationError("");
+      return;
+    }
+
+    setIsCheckingLocation(true);
+    setLocationError("");
+
+    if (!navigator.geolocation) {
+      setLocationError("La géolocalisation n'est pas supportée par votre navigateur.");
+      setIsCheckingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+        // Coordonnées du centre de lavage
+        const distance = getDistanceFromLatLonInM(userLat, userLng, 49.011021, 2.030300);
+
+        if (distance <= 200) {
+          setIsLocationVerified(true);
+        } else {
+          setIsLocationVerified(false);
+          setLocationError(`Vous êtes trop loin du centre (${Math.round(distance)}m). Vous devez être sur place !`);
+        }
+        setIsCheckingLocation(false);
+      },
+      (error) => {
+        setIsLocationVerified(false);
+        setIsCheckingLocation(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError("Vous devez autoriser l'accès à votre position pour valider.");
+        } else {
+          setLocationError("Impossible de récupérer votre position.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLocationVerified) {
+      setDbError("Veuillez valider votre position GPS avant d'envoyer.");
+      return;
+    }
     if (userInfo.firstName && userInfo.lastName && userInfo.email && wonPrize) {
       setIsSubmitting(true);
       setDbError("");
@@ -201,18 +273,26 @@ export default function RouletteGame() {
       ease: "easeInOut"
     });
 
-    const prize = prizes[prizeIndex].text;
+    const prizeText = prizes[prizeIndex].text;
+    const isLost = prizes[prizeIndex].isLost || false;
 
     setIsSpinning(false);
-    setWonPrize(prize);
+    setWonPrize(prizeText);
+    setIsLostResult(isLost);
     setHasSpun(true);
 
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#FFFFFF', '#E8ECF0', '#C0C7D0']
-    });
+    if (!isLost) {
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 500);
+
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#FFFFFF', '#E8ECF0', '#C0C7D0']
+      });
+    }
   };
 
   const renderSVGWheel = () => {
@@ -459,9 +539,23 @@ export default function RouletteGame() {
           </div>
         )}
 
-        {/* ÉTAPE 2: FORMULAIRE APRÈS AVOIR TOURNÉ */}
-        {hasSpun && !hasRegistered && (
+        {/* RÉSULTAT PERDU */}
+        {hasSpun && isLostResult && (
           <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md mx-auto shadow-2xl border border-white/20 text-center"
+          >
+            <h3 className="text-3xl font-black text-[#FF006E] mb-4 uppercase">Dommage !</h3>
+            <p className="text-lg text-white font-medium">Vous n'avez pas gagné cette fois.</p>
+            <p className="text-gray-300 mt-2">Retentez votre chance la prochaine fois !</p>
+          </motion.div>
+        )}
+
+        {/* ÉTAPE 2: FORMULAIRE APRÈS AVOIR TOURNÉ (GAGNANT) */}
+        {hasSpun && !hasRegistered && !isLostResult && (
+          <motion.div
+            ref={formRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md mx-auto shadow-2xl border border-white/20"
@@ -488,8 +582,26 @@ export default function RouletteGame() {
                 <label className="block text-sm font-semibold text-gray-300 mb-1">Email</label>
                 <input required type="email" value={userInfo.email} onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })} className="w-full bg-[#050814] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all" placeholder="Votre adresse email" />
               </div>
+              <div className="mt-2 p-4 bg-white/5 border border-white/10 rounded-xl">
+                <label className={`flex items-start gap-3 ${isLocationVerified ? 'cursor-default' : 'cursor-pointer'}`}>
+                  <input 
+                    type="checkbox" 
+                    checked={isLocationVerified}
+                    onChange={handleLocationCheck}
+                    disabled={isCheckingLocation || isLocationVerified}
+                    className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-[#00F0FF] focus:ring-[#00F0FF] focus:ring-offset-0 disabled:opacity-50 flex-shrink-0"
+                  />
+                  <span className="text-sm text-gray-300 leading-snug">
+                    Je confirme être <b>actuellement au centre de lavage</b> pour réclamer mon gain. <span className="text-gray-500">(Vérification GPS)</span>
+                  </span>
+                </label>
+                {isCheckingLocation && <p className="text-sm text-[#00F0FF] mt-3 ml-8 animate-pulse">Vérification de la position en cours...</p>}
+                {locationError && <p className="text-sm text-red-400 mt-3 ml-8 font-medium">{locationError}</p>}
+                {isLocationVerified && <p className="text-sm text-green-400 mt-3 ml-8 font-bold flex items-center gap-1">✓ Position validée !</p>}
+              </div>
+
               {dbError && <p className="text-red-400 text-sm text-center bg-red-400/10 p-2 rounded-lg">{dbError}</p>}
-              <button disabled={isSubmitting} type="submit" className="mt-2 w-full py-4 rounded-xl font-black text-lg text-[#0A0E27] bg-gradient-to-r from-[#00F0FF] to-[#FF006E] hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,110,0.4)] disabled:opacity-50">
+              <button disabled={isSubmitting || !isLocationVerified} type="submit" className="mt-2 w-full py-4 rounded-xl font-black text-lg text-[#0A0E27] bg-gradient-to-r from-[#00F0FF] to-[#FF006E] hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,110,0.4)] disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100">
                 {isSubmitting ? "Envoi en cours..." : "RÉCUPÉRER MON LOT"}
               </button>
             </form>
@@ -514,7 +626,7 @@ export default function RouletteGame() {
               </div>
 
               <p className="text-sm text-green-300 font-medium">
-                ✅ Votre QR Code a été envoyé sur <b>{userInfo.email}</b>.
+                ✅ Votre demande a bien été enregistrée. Votre QR Code vous sera envoyé par email sur <b>{userInfo.email}</b> après validation !
               </p>
             </div>
           </motion.div>

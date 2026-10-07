@@ -12,7 +12,16 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ clients });
+    const parsedClients = clients.map((c: any) => {
+      const isValidated = c.won_prize.startsWith('[VALIDATED]');
+      return {
+        ...c,
+        won_prize: c.won_prize.replace('[VALIDATED]', ''),
+        is_validated: isValidated
+      };
+    });
+
+    return NextResponse.json({ clients: parsedClients });
   } catch (error) {
     return NextResponse.json({ error: 'Erreur Serveur' }, { status: 500 });
   }
