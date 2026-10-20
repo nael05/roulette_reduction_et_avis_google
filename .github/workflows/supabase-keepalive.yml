@@ -1,0 +1,29 @@
+name: Supabase Keep Alive (Anti-Pause)
+
+on:
+  schedule:
+    # S'exécute automatiquement tous les 3 jours à 10h00 UTC
+    - cron: '0 10 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase API
+        run: |
+          SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://tbsrojnncsanhbxctelv.supabase.co' }}"
+          SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRic3Jvam5uY3NhbmhieGN0ZWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MTgzMjYsImV4cCI6MjEwNjQ5NDMyNn0.FgapEJn5fUHHJ9nOOcCVruetz8zz96ol-mkb1nhKBuI' }}"
+          
+          echo "🔄 Envoi de la requête keep-alive..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "$SUPABASE_URL/rest/v1/clients?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          
+          echo "Code réponse HTTP : $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+            echo "✅ Supabase est bien actif !"
+          else
+            echo "⚠️ Attention : Réponse inattendue (Code $HTTP_STATUS). La base est peut-être actuellement en pause."
+          fi
